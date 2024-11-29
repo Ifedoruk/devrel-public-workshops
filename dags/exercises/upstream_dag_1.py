@@ -87,12 +87,12 @@ def upstream_dag_1():
     @task
     def get_cities(**context) -> str:
         ### START CODE HERE ### (modify the return statement to return all cities in the list)
-        return context["params"]["my_cities"][0]
+        return context["params"]["my_cities"]
         ### END CODE HERE  ###
 
     cities = get_cities()
 
-    @task
+    @task(map_index_template="{{ my_custom_map_index }}")
     def get_lat_long_for_one_city(city: str, **context) -> dict:
         """Converts a string of a city name provided into
         lat/long coordinates."""
@@ -107,10 +107,16 @@ def upstream_dag_1():
 
         t_log.info(f"Coordinates for {city}: {lat}/{long}")
 
+        from airflow.operators.python import get_current_context
+
+        context = get_current_context()
+
+        context["my_custom_map_index"] = city
+
         return {"city": city, "lat": lat, "long": long}
 
     ### START CODE HERE ### (use the expand method to map the task over all cities)
-    cities_coordinates = get_lat_long_for_one_city(city=cities)
+    cities_coordinates = get_lat_long_for_one_city.expand(city=cities)
     ### END CODE HERE ###
     ### END EXERCISE ###
 
@@ -189,7 +195,7 @@ def upstream_dag_1():
     # Tip: Use the outlets parameter to achieve this as shown in the upstream_dag_2.
 
     ## START CODE HERE ##
-    @task()
+    @task(outlets=[Dataset('current_weather_data')])
     ## END CODE HERE ##
     def create_weather_table(
         weather: list | dict, cities_coordinates: list | dict, **context

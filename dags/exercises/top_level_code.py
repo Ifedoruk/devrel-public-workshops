@@ -1,8 +1,5 @@
 from datetime import datetime
-
 from airflow.decorators import dag, task
-
-from include.helper_functions import expensive_api_call
 
 
 @dag(
@@ -16,14 +13,19 @@ from include.helper_functions import expensive_api_call
 def top_level_code():
 
     #### EXERCISE 4 ####
-    the_meaning_of_life_the_universe_and_everything = expensive_api_call()
+    @task
+    def some_func():
+        from include.helper_functions import expensive_api_call
+        the_meaning_of_life_the_universe_and_everything = expensive_api_call()
+        
+        return the_meaning_of_life_the_universe_and_everything
 
     @task
     def reveal_the_meaning_of_life_the_universe_and_everything(the_answer):
         print(f"The meaning of life, the universe, and everything is... {the_answer}.")
 
     reveal_the_meaning_of_life_the_universe_and_everything(
-        the_meaning_of_life_the_universe_and_everything
+        the_answer=some_func()
     )
 
 

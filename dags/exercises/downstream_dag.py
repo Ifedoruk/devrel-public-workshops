@@ -22,6 +22,12 @@ import logging
 
 t_log = logging.getLogger("airflow.task")
 
+CURRENT_WEATHER_DATA = Dataset('current_weather_data')
+MAX_TEMP_DATA = Dataset('max_temp_data')
+WIND_SPEED_DATA = Dataset('wind_speed_data')
+WIND_DIRECTION_DATA = Dataset('wind_direction_data')
+
+default_args = {'owner': 'igor','retries': 3, }
 
 @dag(
     dag_display_name="1./3. Exercise Downstream DAG 🌦️",
@@ -31,7 +37,9 @@ t_log = logging.getLogger("airflow.task")
     # AND whenever both "current_weather_data" and "max_temp_data" are updated
     # AS WELL AS ONE OF the datasets "wind_speed_data" OR "wind_direction_data".
     ### START CODE HERE ###
-    schedule=None,
+    schedule=DatasetOrTimeSchedule(
+        timetable=CronTriggerTimetable("0 0 * * *", timezone="UTC"),
+        datasets=((CURRENT_WEATHER_DATA & MAX_TEMP_DATA) & (WIND_SPEED_DATA | WIND_DIRECTION_DATA))),
     ### STOP CODE HERE ###
     catchup=False,
     doc_md=__doc__,
@@ -39,10 +47,12 @@ t_log = logging.getLogger("airflow.task")
     ### EXERCISE 3 ###
     # Set the owner of the DAG to your name and the number of retries to 3.
     ### START CODE HERE ###
+    default_args=default_args,
     ### STOP CODE HERE ###
     ### EXERCISE 3 ###
     # Make sure this DAG never has more than 6 consecutive failed runs.
     ### START CODE HERE ###
+    max_consecutive_failed_dag_runs=6,
     ### STOP CODE HERE ###
     tags=["exercise", "exercise_1", "exercise_3"],
 )
